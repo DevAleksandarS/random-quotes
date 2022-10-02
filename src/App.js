@@ -1,26 +1,70 @@
+import { useReducer, useEffect } from "react";
 import "./css/style.css";
 
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "INPUT":
+      return {
+        quote: action.quote,
+        author: action.author,
+        tags: action.tags,
+      };
+    default:
+      return;
+  }
+};
+
+const options = {
+  method: "GET",
+  headers: {
+    "X-RapidAPI-Key": "f07331321fmshd5412fa13f915dap11e0aajsn701c098c1ef7",
+    "X-RapidAPI-Host": "quotes15.p.rapidapi.com",
+  },
+};
+
 function App() {
+  const [state, dispatch] = useReducer(reducer, {
+    quote: "",
+    author: "",
+    tags: [],
+  });
+
+  const fetchFunc = () => {
+    fetch("https://quotes15.p.rapidapi.com/quotes/random/", options)
+      .then((response) => response.json())
+      .then((response) =>
+        dispatch({
+          type: "INPUT",
+          quote: response.content,
+          author: response.originator.name,
+          tags: response.tags,
+        })
+      )
+      .catch((err) => console.error(err));
+  };
+
+  useEffect(() => {
+    fetchFunc();
+  }, []);
+
   return (
     <div className="main-container">
       <div className="container">
-        <p className="quote">
-          "Efforts will lie, but they will not be in vain. Common variation:
-          Effort may lie, but will never be in vain."
-        </p>
+        <p className="quote">"{state.quote}"</p>
         <p className="author">
-          Author: <b>Yuzuru Hanyu</b>
+          Author: <b>{state.author}</b>
         </p>
         <div className="line"></div>
         <div className="tags">
-          <p className="buble-tag">Lie</p>
-          <p className="buble-tag">Effort</p>
-          <p className="buble-tag">common</p>
-          <p className="buble-tag">variation</p>
+          {state.tags.map((tag) => {
+            return <p className="buble-tag">{tag}</p>;
+          })}
         </div>
       </div>
 
-      <button className="btn-action">Generate new qoute</button>
+      <button onClick={() => fetchFunc()} className="btn-action">
+        Generate new qoute
+      </button>
     </div>
   );
 }
